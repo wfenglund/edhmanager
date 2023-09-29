@@ -23,6 +23,12 @@ getCardInfo <- function(cardName) {
   if(!("flavor_text" %in% names(rawInfo))) {
     rawInfo$flavor_text <- "-"
   }
+  if(!("oracle_text" %in% names(rawInfo))) {
+    rawInfo$oracle_text <- "-"
+  }
+  if(length(rawInfo$prices[[1]]) == 0) {
+    rawInfo$prices <- c(0)
+  }
   rawInfo$usd <- as.numeric(rawInfo$prices[[1]][1])
   cardInfo <- rawInfo[,c("name", "colors", "color_identity", "cmc", "oracle_text", "power", "toughness", "type_line", "keywords", "flavor_text", "usd", "rarity")]
   return(cardInfo)
@@ -31,7 +37,8 @@ getCardInfo <- function(cardName) {
 LoadDeck <- function(csvPath) {
   deckRaw <- read.csv(file = csvPath, header = FALSE, sep = ";")
   deckList <- lapply(deckRaw$V1, getCardInfo)
-  deckDF <- do.call(rbind, deckList)
+  deckTbl <- do.call(rbind, deckList)
+  deckDF <- as.data.frame(deckTbl)
   return(deckDF)
 }
 
@@ -81,4 +88,3 @@ writeDeck <- function(deckDF, csvPath) {
 
 writeDeck(deck, "decks/OMW.csv")
 ```
-
