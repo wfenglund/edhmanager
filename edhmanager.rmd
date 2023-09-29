@@ -1,0 +1,83 @@
+---
+title: "edhmanager"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(scryr)
+```
+
+# Load deck:
+```{r}
+getCardInfo <- function(cardName) {
+  rawInfo <- scryr::scry_card_name(cardName)
+  if(!("toughness" %in% names(rawInfo))) {
+    rawInfo$power <- "-"
+    rawInfo$toughness <- "-"
+  }
+  if(!("flavor_text" %in% names(rawInfo))) {
+    rawInfo$flavor_text <- "-"
+  }
+  rawInfo$usd <- as.numeric(rawInfo$prices[[1]][1])
+  cardInfo <- rawInfo[,c("name", "colors", "color_identity", "cmc", "oracle_text", "power", "toughness", "type_line", "keywords", "flavor_text", "usd", "rarity")]
+  return(cardInfo)
+}
+
+LoadDeck <- function(csvPath) {
+  deckRaw <- read.csv(file = csvPath, header = FALSE, sep = ";")
+  deckList <- lapply(deckRaw$V1, getCardInfo)
+  deckDF <- do.call(rbind, deckList)
+  return(deckDF)
+}
+
+deck <- LoadDeck("decks/OMW.csv")
+```
+
+# Modify deck:
+```{r}
+addCard <- function(newCard, deckDF) {
+  if(nrow(deckDF) < 100) {
+    cardInfo <- NULL
+    try(cardInfo <- getCardInfo(newCard))
+    if(is.null(cardInfo)) {
+      print("The card could not be found. No action was performed.")
+      return(deckDF)
+    }
+    deckDF <- rbind(deckDF, cardInfo)
+    print(paste0("Your deck is now ", as.character(100 - nrow(deckDF)), " cards from being full."))
+    return(deckDF)
+  } else {
+    print("Your deck is already full, please remove cards before you add more.")
+    return(deckDF)
+  }
+}
+
+dropCard <- function(oldCard, deckDF) {
+  oldCard <- tolower(oldCard)
+  availableCards <- tolower(deckDF$name)
+  if(oldCard %in% availableCards) {
+    deckDF <- deckDF[-c(match(oldCard, availableCards)),]
+    print(paste0("Your deck is now ", as.character(100 - nrow(deckDF)), " cards from being full."))
+  } else {
+    print("The card could not be found. No action was performed.")
+  }
+  return(deckDF)
+}
+
+deck <- addCard("forest", deck)
+deck <- dropCard("forest", deck)
+```
+
+# Write deck:
+```{r}
+writeDeck <- function(deckDF, csvPath) {
+  write.table(x = as.vector(deckDF$name), file = csvPath, sep = ";", col.names = FALSE, row.names = FALSE, quote = FALSE)
+}
+
+writeDeck(deck, "decks/OMW.csv")
+```
+
