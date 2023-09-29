@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load libraries:
 ```{r}
 library(scryr)
+library(plyr)
 ```
 
 # Load deck:
@@ -78,6 +79,31 @@ dropCard <- function(oldCard, deckDF) {
 
 deck <- addCard("forest", deck)
 deck <- dropCard("forest", deck)
+```
+
+# Extract information:
+```{r}
+DeckStats <- function(deckDF) {
+  cat("Commander deck stats\n####################\n\n")
+  cat("Mana:\n*****\n")
+  colorID <- unique(unlist(deckDF$color_identity, recursive = TRUE))
+  colorID <- colorID[!(colorID == "NULL")]
+  colorCheck <- function(x) {ifelse(x == "B", "black", ifelse(x == "G", "green", ifelse("R", "red", ifelse("U", "blue", ifelse("W", "white", "unknown")))))}
+  colorID <- lapply(colorID, colorCheck)
+  cat("- Color identity:", paste(colorID, collapse = ", "), "\n")
+  cat("- Converted mana costs:")
+  cmcs <- plyr::count(deckDF$cmc)
+  print.data.frame(unname(cmcs[order(cmcs$x, decreasing = TRUE),]), row.names = FALSE)
+  cat("\nCard types:\n***********")
+  cardTypes <- gsub(" —.+|Legendary |Basic | // .+", "", deckDF$type_line)
+  cardTypes <- plyr::count(unlist(cardTypes))
+  print.data.frame(unname(cardTypes[order(cardTypes$freq, decreasing = TRUE),]), row.names = FALSE)
+  cat("\nKeywords:\n*********")
+  keywords <- plyr::count(unlist(deckDF$keywords))
+  print.data.frame(unname(keywords[order(keywords$freq, decreasing = TRUE),]), row.names = FALSE)
+}
+
+DeckStats(deck)
 ```
 
 # Write deck:
