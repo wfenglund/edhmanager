@@ -84,7 +84,8 @@ deck <- dropCard("forest", deck)
 # Extract information:
 ```{r}
 DeckStats <- function(deckDF) {
-  cat("Commander deck stats\n####################\n\n")
+  cat("Commander deck stats\n####################\n")
+  cat(paste0("Price: $", sum(deckDF$usd)), "\n\n")
   cat("Mana:\n*****\n")
   colorID <- unique(unlist(deckDF$color_identity, recursive = TRUE))
   colorID <- colorID[!(colorID == "NULL")]
