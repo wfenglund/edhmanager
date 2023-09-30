@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(scryr)
 library(plyr)
+library(cowplot)
+library(magick)
 ```
 
 # Load deck:
@@ -31,7 +33,9 @@ getCardInfo <- function(cardName) {
     rawInfo$prices <- c(0)
   }
   rawInfo$usd <- as.numeric(rawInfo$prices[[1]][1])
-  cardInfo <- rawInfo[,c("name", "colors", "color_identity", "cmc", "oracle_text", "power", "toughness", "type_line", "keywords", "flavor_text", "usd", "rarity")]
+  rawInfo$image <- as.character(rawInfo$image_uris[[1]][2])
+  cardInfo <- rawInfo[,c("name", "colors", "color_identity", "cmc", "oracle_text", "power", "toughness", "type_line", "keywords", "flavor_text", "usd", "rarity", "image")]
+  Sys.sleep(0.5)
   return(cardInfo)
 }
 
@@ -105,6 +109,29 @@ DeckStats <- function(deckDF) {
 }
 
 DeckStats(deck)
+```
+
+# Interact with deck:
+```{r fig.height=10, fig.width=15}
+DrawHand <- function(deckDF) {
+  urlVector <- sample(x = deck$image, size = 7, replace = FALSE)
+  plotImage <- function(imageUrl) {
+    plottedImage <- cowplot::ggdraw() +
+    cowplot::draw_image(imageUrl)
+    return(plottedImage)
+  }
+  allCards <- lapply(urlVector, plotImage)
+  upperPlot <- cowplot::plot_grid(plotlist = allCards[1:4], nrow = 1)
+  lowerPlot <- cowplot::plot_grid(plotlist = allCards[5:7], nrow = 1)
+  cowplot::plot_grid(upperPlot, lowerPlot, nrow = 2)
+}
+
+DrawHand(deck)
+```
+
+# Test cards against deck:
+```{r}
+# Function testing a card against the deck
 ```
 
 # Write deck:
