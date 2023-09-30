@@ -123,7 +123,8 @@ DrawHand <- function(deckDF) {
   allCards <- lapply(urlVector, plotImage)
   upperPlot <- cowplot::plot_grid(plotlist = allCards[1:4], nrow = 1)
   lowerPlot <- cowplot::plot_grid(plotlist = allCards[5:7], nrow = 1)
-  cowplot::plot_grid(upperPlot, lowerPlot, nrow = 2)
+  cowplot::plot_grid(upperPlot, lowerPlot, nrow = 2) +
+  theme(plot.background = element_rect(fill = "black"))
 }
 
 DrawHand(deck)
