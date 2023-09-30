@@ -131,7 +131,9 @@ DrawHand(deck)
 
 # Test cards against deck:
 ```{r}
-# Function testing a card against the deck
+# Function testing a card against the deck:
+# - show which cards in the deck that interacts with the keywords of the card
+# - show which cards (if any) that share a creature type with the card
 ```
 
 # Write deck:
