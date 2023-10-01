@@ -87,10 +87,10 @@ deck <- dropCard("forest", deck)
 
 # Extract information:
 ```{r}
-# Add so that the function prints the commander of the deck
 DeckStats <- function(deckDF) {
-  cat("Commander deck stats\n####################\n")
-  cat(paste0("Price: $", sum(deckDF$usd)), "\n\n")
+  cat("Commander deck stats\n####################\n\n")
+  cat("Commander: ", deckDF[deck$status == "commander", "name"], "\n")
+  cat(paste0("Deck price: $", sum(deckDF$usd)), "\n\n")
   cat("Mana:\n*****\n")
   colorID <- unique(unlist(deckDF$color_identity, recursive = TRUE))
   colorID <- colorID[!(colorID == "NULL")]
@@ -114,9 +114,9 @@ DeckStats(deck)
 
 # Interact with deck:
 ```{r fig.height=10, fig.width=15}
-# Fix so that commander is not among the possible cards to be drawn
 DrawHand <- function(deckDF) {
-  urlVector <- sample(x = deck$image, size = 7, replace = FALSE)
+  drawPool <- deckDF[-grepl("commander", deckDF$status),]
+  urlVector <- sample(x = drawPool$image, size = 7, replace = FALSE)
   plotImage <- function(imageUrl) {
     plottedImage <- cowplot::ggdraw() +
     cowplot::draw_image(imageUrl)
@@ -135,6 +135,8 @@ DrawHand(deck)
 # Test cards against deck:
 ```{r}
 # Function testing a card against the deck
+# - show which cards in the deck that interacts with the keywords of the card
+# - show which cards (if any) that share a creature type with the card
 ```
 
 # Write deck:
