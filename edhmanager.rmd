@@ -18,7 +18,7 @@ library(magick)
 # Load deck:
 ```{r}
 getCardInfo <- function(cardName) {
-  rawInfo <- scryr::scry_card_name(cardName)
+  rawInfo <- scryr::scry_card_name(cardName[1])
   if(!("toughness" %in% names(rawInfo))) {
     rawInfo$power <- "-"
     rawInfo$toughness <- "-"
@@ -36,12 +36,12 @@ getCardInfo <- function(cardName) {
   rawInfo$image <- as.character(rawInfo$image_uris[[1]][2])
   cardInfo <- rawInfo[,c("name", "colors", "color_identity", "cmc", "oracle_text", "power", "toughness", "type_line", "keywords", "flavor_text", "usd", "rarity", "image")]
   Sys.sleep(0.5)
-  return(cardInfo)
+  return(cbind(status = cardName[2], cardInfo))
 }
 
 LoadDeck <- function(csvPath) {
   deckRaw <- read.csv(file = csvPath, header = FALSE, sep = ";")
-  deckList <- lapply(deckRaw$V1, getCardInfo)
+  deckList <- apply(X = deckRaw, MARGIN = 1, FUN = getCardInfo)
   deckTbl <- do.call(rbind, deckList)
   deckDF <- as.data.frame(deckTbl)
   return(deckDF)
@@ -87,6 +87,7 @@ deck <- dropCard("forest", deck)
 
 # Extract information:
 ```{r}
+# Add so that the function prints the commander of the deck
 DeckStats <- function(deckDF) {
   cat("Commander deck stats\n####################\n")
   cat(paste0("Price: $", sum(deckDF$usd)), "\n\n")
@@ -113,6 +114,7 @@ DeckStats(deck)
 
 # Interact with deck:
 ```{r fig.height=10, fig.width=15}
+# Fix so that commander is not among the possible cards to be drawn
 DrawHand <- function(deckDF) {
   urlVector <- sample(x = deck$image, size = 7, replace = FALSE)
   plotImage <- function(imageUrl) {
@@ -132,15 +134,13 @@ DrawHand(deck)
 
 # Test cards against deck:
 ```{r}
-# Function testing a card against the deck:
-# - show which cards in the deck that interacts with the keywords of the card
-# - show which cards (if any) that share a creature type with the card
+# Function testing a card against the deck
 ```
 
 # Write deck:
 ```{r}
 writeDeck <- function(deckDF, csvPath) {
-  write.table(x = as.vector(deckDF$name), file = csvPath, sep = ";", col.names = FALSE, row.names = FALSE, quote = FALSE)
+  write.table(x = cbind(deckDF$name, deckDF$status), file = csvPath, sep = ";", col.names = FALSE, row.names = FALSE, quote = FALSE)
 }
 
 writeDeck(deck, "decks/OMW.csv")
