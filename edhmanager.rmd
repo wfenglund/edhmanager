@@ -13,6 +13,7 @@ library(scryr)
 library(plyr)
 library(cowplot)
 library(magick)
+library(ggplot2)
 ```
 
 # Load deck:
@@ -146,4 +147,40 @@ writeDeck <- function(deckDF, csvPath) {
 }
 
 writeDeck(deck, "decks/OMW.csv")
+
+saveRDS(deck, "deck.rds")
+```
+
+# Shiny app:
+```{r}
+library(shiny)
+library(keys)
+
+hotkeys <- c(
+  "up 1", # Load deck
+  "up 2", # Print deck stats
+  "up 3"  # Draw hand
+)
+
+ui <- fluidPage(
+  useKeys(),
+  keysInput("keys", hotkeys)
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$keys, {
+    if(input$keys == "up 1") {
+      deck <- readRDS("deck.rds")
+      print("Deck loaded.")
+    }
+    if(input$keys == "up 2" && exists("deck") == TRUE) {
+      DeckStats(deck)
+    }
+    if(input$keys == "up 3" && exists("deck") == TRUE) {
+      #DrawHand(deck)
+    }
+  })
+}
+
+shinyApp(ui, server)
 ```
